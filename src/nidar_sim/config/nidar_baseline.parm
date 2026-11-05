@@ -1,0 +1,106 @@
+# nidar_baseline.parm - the values this stack flew with BEFORE the tilt/accel
+# tuning. This file is the revert: `param_profile:=baseline` (the launch
+# default) pins these, so the vehicle behaves exactly as it did before
+# nidar_tuning.parm existed.
+#
+# Every value here was read back from the live SITL on 2026-10-02 with
+# PARAM_REQUEST_READ (see docs in RUNBOOK.md, "Param profiles"), and each one
+# also equals the firmware's compiled-in default for this build
+# (ArduPilot-4.6.0-beta1-8786-g4c98c9221a). Pinning them explicitly rather
+# than relying on the compiled defaults means an upstream default change
+# cannot silently move the baseline out from under an A/B comparison.
+#
+# WHY THESE FIVE
+# --------------
+# A multirotor accelerates horizontally by leaning: tan(theta) = a/g. The 2D    
+# lidar's scan plane leans with it, so horizontal acceleration is what tilts
+# the scan plane, and the three accel/jerk/angle params below are the only
+# things upstream of that lean. Speed is in the list because it sets how much
+# acceleration the controller is allowed to ask for in the first place.
+#
+# NAMES ARE BUILD-SPECIFIC. This build uses the SI-unit param names - WP_ACC
+# (m/s^2), WP_SPD (m/s), PSC_NE_JERK (m/s^3). The older centimetre names
+# (WPNAV_ACCEL, WPNAV_SPEED, PSC_JERK_XY) do NOT exist here, and an unknown
+# name in a .parm file is read, found to match nothing, and silently ignored -
+# no warning, no error, no effect. Verified against the source:
+#   WP_      libraries/AC_WPNav/AC_WPNav.cpp        ("ACC", "ACC_CNR", "SPD")
+#   ATC_     libraries/AC_AttitudeControl/AC_AttitudeControl.cpp ("ANGLE_MAX")
+#   PSC      libraries/AC_AttitudeControl/AC_PosControl.cpp      ("_NE_JERK")
+# Prefixes come from ArduCopter/Parameters.cpp: GOBJECTPTR(wp_nav, "WP_"),
+# GOBJECTVARPTR(attitude_control, "ATC_"), GOBJECTPTR(pos_control, "PSC").
+# Note "PSC" has no trailing underscore, so the full name is PSC_NE_JERK.
+
+# Horizontal acceleration limit, m/s^2. GUIDED velocity control reads this
+# directly: ModeGuided::init sets pos_control's NE accel limit from
+# wp_nav->get_wp_acceleration_mss() (ArduCopter/mode_guided.cpp:255). At 2.5
+# that is atan(2.5/9.81) = 14.3 deg of steady-state lean.
+WP_ACC          2.5
+
+# Corner acceleration, m/s^2. 0 means "use 2 x WP_ACC" (AC_WPNav.h:144), i.e.
+# 5.0 m/s^2 / 27 deg here.
+#
+# HONEST CAVEAT: in THIS stack that is latent, not active. WP_ACC_CNR is only
+# read by AC_WPNav's S-curve waypoint tracker (AC_WPNav.cpp:421/463/497/616),
+# which runs for AUTO missions and position targets. Nav2 drives this vehicle
+# with VELOCITY commands through GUIDED, which never touches the S-curve path,
+# so corner accel is not what spikes the lean at an L-turn - Nav2's own
+# commanded velocity change is. It is pinned anyway because it costs nothing
+# and it does bite the moment anyone flies a waypoint mission.
+WP_ACC_CNR      0.0
+
+# Maximum lean angle, deg, in every flight mode - the hard ceiling that no
+# accel request can exceed. 30 deg permits 5.7 m/s^2.
+ATC_ANGLE_MAX   30.0
+
+# Horizontal speed, m/s. ModeGuided::init also takes pos_control's NE speed
+# limit from wp_nav->get_default_speed_NE_ms(). 10 m/s is far above anything
+# Nav2 commands in a 2.8 m maze corridor (it asks for 0.8), so in practice
+# this is not the active limit - but it is the number ArduPilot will happily
+# accelerate towards if Nav2's own cap is ever raised.
+WP_SPD          10.0
+
+# Horizontal jerk, m/s^3 - how fast the acceleration itself may change, i.e.
+# how abruptly the lean is allowed to come on. 5.0 reaches 2.5 m/s^2 in 0.5 s.
+PSC_NE_JERK     5.0
+
+# Position-controller lean limit, deg. 0 = inherit ATC_ANGLE_MAX, which is
+# what we want: one place to set the ceiling. Pinned at 0 in both profiles so
+# a stale eeprom value cannot quietly override ATC_ANGLE_MAX for the position
+# controller only.
+PSC_ANGLE_MAX   0.0
+
+# Attitude-controller input time constant, seconds. SITL's gazebo-iris.parm
+# ships 0.20; Copter's own default is 0.15. Listed here so that switching back
+# to this profile actually restores it - apply_param_profile.py reads the set
+# of parameter names from THIS file, so anything the tuning profile writes and
+# this one omits can never be reverted.
+ATC_INPUT_TC    0.20
+
+# ---------------------------------------------------------------------------
+# WP_YAW_BEHAVIOR = 0  (NONE -> AutoYaw Mode::HOLD)
+#
+# REQUIRED. Nav2 runs MPPI with motion_model "Omni" and wz_max 0.0, i.e. it
+# predicts every trajectory assuming the heading NEVER changes, and cmd_vel is
+# published in base_link - the BODY frame.
+#
+# The SITL default is 2 (LOOK_AT_NEXT_WP_EXCEPT_RTL), which in GUIDED makes
+# ArduPilot continuously yaw the airframe to face its own velocity vector
+# (ArduCopter/autoyaw.cpp default_mode(), applied by mode_guided.cpp's velocity
+# controller). The body frame then rotates underneath a command computed for a
+# fixed heading, so the drone curves off the green /plan, Nav2 corrects, and
+# ArduPilot yaws to follow the new velocity. That positive feedback loop is the
+# violent weaving about the path.
+#
+# 0 holds heading, which is exactly what Nav2 already assumes. A 360 degree
+# lidar loses nothing by never yawing, and it keeps scan matching clean.
+WP_YAW_BEHAVIOR 0
+
+# DDS_USE_NS = 0, the firmware default. Pinned explicitly so switching back
+# to this profile actually reverts nidar_tuning.parm's DDS_USE_NS 1 - see
+# that file's own comment for what this parameter does and why it matters.
+DDS_USE_NS 0
+
+# ARMING_CHECK = 0 — SIMULATION ONLY, never do this on a real airframe.
+# Pinned here too so switching param_profile does not bring prearm-check
+# friction back. See nidar_tuning.parm's own comment for the full reason.
+ARMING_CHECK 0

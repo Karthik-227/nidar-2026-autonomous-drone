@@ -1,0 +1,123 @@
+frontier_explorer:
+  ros__parameters:
+
+    # --------------- TOPICS --------------- #
+    map_topic: /map
+    costmap_topic: /global_costmap/costmap
+    local_costmap_topic: /local_costmap/costmap
+    navigate_to_pose_action_name: navigate_to_pose
+    global_frame: map
+
+    # CHANGED (was base_footprint): drone has no footprint frame.
+    # Verify actual frame name with: ros2 run tf2_ros tf2_echo map base_link
+    robot_base_frame: base_link
+
+    frontier_marker_topic: /explore/frontiers
+    selected_frontier_topic: /explore/selected_frontier
+    optimized_map_topic: /explore/optimized_map
+    completion_event_topic: exploration_complete
+    frontier_marker_scale: 0.15
+
+    # --------------- QoS --------------- #
+    # slam_toolbox publishes /map transient_local — packaged default is correct.
+    map_qos_durability: transient_local
+    map_qos_reliability: reliable
+    map_qos_depth: 1
+    map_qos_autodetect_on_startup: false
+    map_qos_autodetect_timeout_s: 5.0
+    costmap_qos_reliability: reliable
+    costmap_qos_depth: 10
+    local_costmap_qos_reliability: inherit
+    local_costmap_qos_depth: -1
+
+    # --------------- GENERAL --------------- #
+    map_processing_rate_hz: 1.0
+    autostart: true
+
+    # CHANGED (was false): keep the control service so you can
+    # frontier_exploration_ctl stop / start during testing.
+    control_service_enabled: true
+
+    completion_event_enabled: true
+    escape_enabled: true
+
+    # Set true later: this maps directly onto the competition's
+    # exit-through-entry-point requirement. False for first runs.
+    return_to_start_on_complete: false
+
+    mrtsp_solver: dp
+    dp_solver_candidate_limit: 12
+
+    # CHANGED (was 8): 15x15m maze rarely has deep useful lookahead;
+    # short horizon replans better in corridors and saves CPU on the VM.
+    dp_planning_horizon: 4
+
+    frontier_map_optimization_enabled: true
+    goal_preemption_enabled: false
+    goal_preemption_min_interval_s: 2.0
+    goal_skip_on_blocked_goal: false
+
+    # CHANGED (was false): your SLAM+lidar update loop on the VM is slow;
+    # a small settle after each goal avoids re-goaling on a stale map.
+    post_goal_settle_enabled: true
+    post_goal_min_settle: 1.50
+
+    # Suppression ON (learned the hard way in run 1: without it, an
+    # unreachable frontier is re-dispatched forever).
+    frontier_suppression_enabled: true
+    all_frontiers_suppressed_behavior: return_to_start
+
+    # --------------- MRTSP Scoring --------------- #
+    weight_distance_wd: 2.0
+    weight_gain_ws: 1.0
+
+    # CHANGED (was 0.50): match the linear speed cap you fly in GUIDED.
+    # Update if you cap slower for the maze.
+    max_linear_speed_vmax: 0.8
+
+    max_angular_speed_wmax: 1.0
+
+    # CHANGED (was 1.5): maze sightlines cap around 4-6m at junctions;
+    # 1.5 is TB3-lidar tuning. This is a scoring value, not a sensor spec.
+    sensor_effective_range_m: 4.0
+
+    # --------------- Navigation Safety --------------- #
+    # Recommended 2.5x robot radius; iris radius ~0.30 -> 0.75, keep 0.8.
+    frontier_selection_min_distance: 0.8
+    frontier_visit_tolerance: 0.40
+
+    # --------------- Map Optimization --------------- #
+    frontier_candidate_min_goal_distance_m: 1.0
+    occ_threshold: 65
+
+    # CHANGED (was 5): at 0.05m resolution, 8 cells = 40cm — kills noise
+    # frontiers that are too small to be a real 1m-grid corridor opening.
+    min_frontier_size_cells: 4
+
+    sigma_s: 2.0
+    sigma_r: 30.0
+    dilation_kernel_radius_cells: 1
+
+    # --------------- Preemption --------------- #
+    goal_preemption_complete_if_within_m: 0.50
+
+    # RPLidar A1 spec range; matches your sim lidar config.
+    goal_preemption_lidar_range_m: 12.0
+    goal_preemption_lidar_fov_deg: 360.0
+    goal_preemption_lidar_ray_step_deg: 1.0
+    goal_preemption_lidar_min_reveal_length_m: 0.5
+    goal_preemption_lidar_yaw_offset_deg: 0.0
+
+    # --------------- Suppression (inactive until enabled above) --------------- #
+    frontier_suppression_attempt_threshold: 2
+    frontier_suppression_base_size_m: 1.0
+    frontier_suppression_expansion_size_m: 0.5
+    frontier_suppression_timeout_s: 60.0
+    frontier_suppression_no_progress_timeout_s: 25.0
+    frontier_suppression_progress_epsilon_m: 0.25
+
+    # CHANGED (was 15): SITL + MAVROS + Nav2 bring-up on the VM is slow.
+    frontier_suppression_startup_grace_period_s: 30.0
+
+    frontier_suppression_max_attempt_records: 256
+    frontier_suppression_max_regions: 64

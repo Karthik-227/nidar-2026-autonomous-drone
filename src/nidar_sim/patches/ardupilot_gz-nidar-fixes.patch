@@ -1,0 +1,166 @@
+diff --git a/ardupilot_gz_bringup/config/alti_transition_bridge.yaml b/ardupilot_gz_bringup/config/alti_transition_bridge.yaml
+index abddb67..a3981ca 100644
+--- a/ardupilot_gz_bringup/config/alti_transition_bridge.yaml
++++ b/ardupilot_gz_bringup/config/alti_transition_bridge.yaml
+@@ -1,6 +1,13 @@
+ ---
++# NIDAR patch: was gz_topic_name "/clock", which has NO PUBLISHER in Gazebo
++# Harmonic - `gz topic -i -t /clock` reports subscribers only. The world-scoped
++# topic is the one that actually publishes. With the bridge pointed at the dead
++# topic, ROS /clock never received a message, so every node launched with
++# use_sim_time:=true sat at t=0 forever: ROS timers never fired, Nav2's costmaps
++# never updated, and nodes looked hung with no error. Verified: bridging
++# /world/<world>/clock gives /clock at ~1000 Hz.
+ - ros_topic_name: "clock"
+-  gz_topic_name: "/clock"
++  gz_topic_name: "/world/{{ world_name }}/clock"
+   ros_type_name: "rosgraph_msgs/msg/Clock"
+   gz_type_name: "gz.msgs.Clock"
+   direction: GZ_TO_ROS
+diff --git a/ardupilot_gz_bringup/config/iris_2Dlidar_bridge.yaml b/ardupilot_gz_bringup/config/iris_2Dlidar_bridge.yaml
+index a8622e0..4fdfac1 100644
+--- a/ardupilot_gz_bringup/config/iris_2Dlidar_bridge.yaml
++++ b/ardupilot_gz_bringup/config/iris_2Dlidar_bridge.yaml
+@@ -1,6 +1,13 @@
+ ---
++# NIDAR patch: was gz_topic_name "/clock", which has NO PUBLISHER in Gazebo
++# Harmonic - `gz topic -i -t /clock` reports subscribers only. The world-scoped
++# topic is the one that actually publishes. With the bridge pointed at the dead
++# topic, ROS /clock never received a message, so every node launched with
++# use_sim_time:=true sat at t=0 forever: ROS timers never fired, Nav2's costmaps
++# never updated, and nodes looked hung with no error. Verified: bridging
++# /world/<world>/clock gives /clock at ~1000 Hz.
+ - ros_topic_name: "clock"
+-  gz_topic_name: "/clock"
++  gz_topic_name: "/world/{{ world_name }}/clock"
+   ros_type_name: "rosgraph_msgs/msg/Clock"
+   gz_type_name: "gz.msgs.Clock"
+   direction: GZ_TO_ROS
+diff --git a/ardupilot_gz_bringup/config/iris_3Dlidar_bridge.yaml b/ardupilot_gz_bringup/config/iris_3Dlidar_bridge.yaml
+index dd32b1b..3be540f 100644
+--- a/ardupilot_gz_bringup/config/iris_3Dlidar_bridge.yaml
++++ b/ardupilot_gz_bringup/config/iris_3Dlidar_bridge.yaml
+@@ -1,6 +1,13 @@
+ ---
++# NIDAR patch: was gz_topic_name "/clock", which has NO PUBLISHER in Gazebo
++# Harmonic - `gz topic -i -t /clock` reports subscribers only. The world-scoped
++# topic is the one that actually publishes. With the bridge pointed at the dead
++# topic, ROS /clock never received a message, so every node launched with
++# use_sim_time:=true sat at t=0 forever: ROS timers never fired, Nav2's costmaps
++# never updated, and nodes looked hung with no error. Verified: bridging
++# /world/<world>/clock gives /clock at ~1000 Hz.
+ - ros_topic_name: "clock"
+-  gz_topic_name: "/clock"
++  gz_topic_name: "/world/{{ world_name }}/clock"
+   ros_type_name: "rosgraph_msgs/msg/Clock"
+   gz_type_name: "gz.msgs.Clock"
+   direction: GZ_TO_ROS
+diff --git a/ardupilot_gz_bringup/config/iris_bridge.yaml b/ardupilot_gz_bringup/config/iris_bridge.yaml
+index 3f5c078..5f6fd6d 100644
+--- a/ardupilot_gz_bringup/config/iris_bridge.yaml
++++ b/ardupilot_gz_bringup/config/iris_bridge.yaml
+@@ -1,6 +1,13 @@
+ ---
++# NIDAR patch: was gz_topic_name "/clock", which has NO PUBLISHER in Gazebo
++# Harmonic - `gz topic -i -t /clock` reports subscribers only. The world-scoped
++# topic is the one that actually publishes. With the bridge pointed at the dead
++# topic, ROS /clock never received a message, so every node launched with
++# use_sim_time:=true sat at t=0 forever: ROS timers never fired, Nav2's costmaps
++# never updated, and nodes looked hung with no error. Verified: bridging
++# /world/<world>/clock gives /clock at ~1000 Hz.
+ - ros_topic_name: "clock"
+-  gz_topic_name: "/clock"
++  gz_topic_name: "/world/{{ world_name }}/clock"
+   ros_type_name: "rosgraph_msgs/msg/Clock"
+   gz_type_name: "gz.msgs.Clock"
+   direction: GZ_TO_ROS
+diff --git a/ardupilot_gz_bringup/config/wildthumper_bridge.yaml b/ardupilot_gz_bringup/config/wildthumper_bridge.yaml
+index bf91ea8..27d677c 100644
+--- a/ardupilot_gz_bringup/config/wildthumper_bridge.yaml
++++ b/ardupilot_gz_bringup/config/wildthumper_bridge.yaml
+@@ -1,6 +1,13 @@
+ ---
++# NIDAR patch: was gz_topic_name "/clock", which has NO PUBLISHER in Gazebo
++# Harmonic - `gz topic -i -t /clock` reports subscribers only. The world-scoped
++# topic is the one that actually publishes. With the bridge pointed at the dead
++# topic, ROS /clock never received a message, so every node launched with
++# use_sim_time:=true sat at t=0 forever: ROS timers never fired, Nav2's costmaps
++# never updated, and nodes looked hung with no error. Verified: bridging
++# /world/<world>/clock gives /clock at ~1000 Hz.
+ - ros_topic_name: "clock"
+-  gz_topic_name: "/clock"
++  gz_topic_name: "/world/{{ world_name }}/clock"
+   ros_type_name: "rosgraph_msgs/msg/Clock"
+   gz_type_name: "gz.msgs.Clock"
+   direction: GZ_TO_ROS
+diff --git a/ardupilot_gz_bringup/launch/robots/iris_lidar.launch.py b/ardupilot_gz_bringup/launch/robots/iris_lidar.launch.py
+index 979a2c8..83c6ab5 100644
+--- a/ardupilot_gz_bringup/launch/robots/iris_lidar.launch.py
++++ b/ardupilot_gz_bringup/launch/robots/iris_lidar.launch.py
+@@ -65,17 +65,36 @@ def generate_robot_launch_actions(context: LaunchContext, *args, **kwargs):
+     with open(sdf_file, "r") as infp:
+         robot_desc = infp.read()
+ 
+-    # Substitute `models://` with `package://ardupilot_gazebo/models/`
+-    # for sdformat_urdf plugin used by robot_state_publisher
++    # Resolve the `model://` include URIs to absolute `file://` paths for the
++    # sdformat_urdf plugin used by robot_state_publisher.
++    #
++    # NIDAR patch: upstream rewrites these to `package://<pkg>/models/<model>`,
++    # but sdformat_urdf calls sdf::Root::LoadSdfString() with the *global*
++    # sdf::ParserConfig, which has no find-file callback registered. libsdformat
++    # therefore cannot resolve a `package://` URI at all - it logs
++    #   "Tried to use callback in sdf::findFile(), but the callback is empty"
++    #   "Unable to find uri[package://ardupilot_gazebo/models/iris_with_standoffs]"
++    # then fails the whole URDF conversion ("parent frame with name[base_link]
++    # ... not found") and robot_state_publisher aborts with
++    #   "Unable to initialize urdf::model from robot description".
++    #
++    # With robot_state_publisher dead there is no base_link -> base_scan
++    # transform, so slam_toolbox can never place a /scan and Nav2 has no
++    # footprint frame: SLAM and Nav2 both look "broken" for a reason that has
++    # nothing to do with their own configuration.
++    #
++    # Absolute file:// paths are resolved by libsdformat directly, with no
++    # callback and no dependence on SDF_PATH / GZ_SIM_RESOURCE_PATH being set.
++    pkg_ardupilot_gazebo = get_package_share_directory("ardupilot_gazebo")
++
+     robot_desc = robot_desc.replace(
+         "model://iris_with_standoffs",
+-        "package://ardupilot_gazebo/models/iris_with_standoffs",
++        f"file://{pkg_ardupilot_gazebo}/models/iris_with_standoffs",
+     )
+ 
+-    # Substitute `models://` with `package://ardupilot_gz_description/models/`
+-    # for sdformat_urdf plugin used by robot_state_publisher
+     robot_desc = robot_desc.replace(
+-        "model://lidar_3d", "package://ardupilot_gz_description/models/lidar_3d"
++        "model://lidar_3d",
++        f"file://{pkg_project_description}/models/lidar_3d",
+     )
+ 
+     # The robot description and ros_gz bridge config are chosen based
+diff --git a/ardupilot_gz_description/models/lidar_2d/model.sdf b/ardupilot_gz_description/models/lidar_2d/model.sdf
+index de0c761..1488a05 100755
+--- a/ardupilot_gz_description/models/lidar_2d/model.sdf
++++ b/ardupilot_gz_description/models/lidar_2d/model.sdf
+@@ -35,8 +35,18 @@
+         <update_rate>10</update_rate>
+         <lidar>
+           <scan>
++            <!-- NIDAR: 640 -> 1081 samples (0.333 deg/ray instead of 0.563).
++                 640 rays over 360 deg put successive returns 7.9 cm apart at
++                 8 m, which is 1.6 cells of a 0.05 m map - so a wall seen from
++                 across the arena landed on every other cell and came out as a
++                 dotted line that never reached the occupancy threshold. This
++                 is the "walls are speckled instead of solid" symptom at
++                 range; near walls were always fine because the same angular
++                 step is only 1.4 cm at 1.4 m. 1081 rays give 4.7 cm at 8 m,
++                 i.e. under one cell, so far walls accumulate continuously.
++                 Cost is 1.7x the ray casts on a GPU lidar at 10 Hz. -->
+             <horizontal>
+-              <samples>640</samples>
++              <samples>1081</samples>
+               <resolution>1</resolution>
+               <min_angle>-3.14159265</min_angle>
+               <max_angle>3.14159265</max_angle>

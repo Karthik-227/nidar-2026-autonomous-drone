@@ -1,0 +1,34 @@
+nidar_arena_2 - plan view, north (+y) up, east (+x) right
+generate_arena.py --name nidar_arena_2 --seed 202 --corridor 1.00 --rooms 7 --survivors 6 --loop-prob 0.20 --entry-corner ne --cells 13 --start open --start-cells 3
+
+P = launch pad (world origin, inside the entry vestibule)
+digits = survivor, letters = room cell, blank = corridor
+one cell = 1.00 m clear; arena is 14.40 m square
+
++-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   |                . . P|
++ + +   + +-+-+-+         +
+| |     | | |a a|    . . .|
++-+-+-+-+ + +   + +       +
+|           |1 a  |  . . .|
++ +-+   +-+ +-+-+ +   +   +
+| |     |             |   |
++ + +-+-+-+ + + +-+-+ + + +
+|      6 f| | |       | | |
++-+ + +   + + + +-+-+-+-+ +
+|e 5| |f f|   |2 b| |d 4  |
++   + +-+-+   +   + +   + +
+|e e|   | |   |b b| |d d| |
++-+-+-+ + +-+ +-+-+ +-+-+ +
+|       |   |     |       |
++-+   +-+-+ +   + +-+ +   +
+|     |c c  |   |   | |   |
++ +-+-+   + +-+-+-+ +-+-+ +
+|     |3 c|       |   |   |
++ + + +-+-+ +-+-+ +-+ + + +
+| | |     | |   |       | |
++ +-+ +-+-+ +   +-+-+-+ + +
+|   |     | |       |g g| |
++-+ + +-+ + + +-+-+ +   + +
+|   |   |           |g g| |
++-+-+-+-+-+-+-+-+-+-+-+-+-+

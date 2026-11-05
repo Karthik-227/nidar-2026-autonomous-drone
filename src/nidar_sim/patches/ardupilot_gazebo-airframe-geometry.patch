@@ -1,0 +1,114 @@
+diff --git a/models/iris_with_standoffs/model.sdf b/models/iris_with_standoffs/model.sdf
+index ce0fd5a..38f37b6 100755
+--- a/models/iris_with_standoffs/model.sdf
++++ b/models/iris_with_standoffs/model.sdf
+@@ -41,7 +41,16 @@
+                Height 0.09 m keeps the body's original vertical extent, so
+                landing height and ground contact are unchanged. -->
+           <cylinder>
+-            <radius>0.240</radius>
++            <!-- 0.240 -> 0.280. The true swept radius of a QAV-R 2 with 7 in
++                 props is 0.2399 m; 0.280 adds a deliberate 40 mm safety
++                 margin so the SIMULATOR collides EARLIER than the real
++                 aircraft would. A run that clears the arena here therefore
++                 clears it in reality with margin to spare - the error is on
++                 the safe side. Nav2's robot_radius and the explorer's
++                 robot_radius_m are set to the same 0.280; if they ever drift
++                 apart the margin is fictional, because Nav2 would plan paths
++                 the body cannot fit through. -->
++            <radius>0.280</radius>
+             <length>0.090</length>
+           </cylinder>
+         </geometry>
+@@ -326,10 +335,20 @@
+         </inertia>
+       </inertial>
+       <visual name='visual'>
+-        <pose>0 0 0 0 0 0</pose>
++        <!-- NIDAR: offset and scaled so the RENDERED prop matches the
++             real airframe. The link pose (and therefore where thrust is
++             applied) is untouched - this is a visual correction only.
++             Real aircraft: QAV-R 2, motors at 0.151 m, 7 in props
++             (0.0889 m radius) -> 0.240 m swept,
++             which is what base_collision's r=0.240 cylinder already
++             models. The Iris mesh drew motors at 0.2555 m with
++             0.1333 m blades = 0.389 m swept, so the
++             picture was 62% wider than the body that actually collides -
++             props visibly swept through walls the drone never touched. -->
++        <pose>-0.0532 0.0900 0 0 0 0</pose>
+         <geometry>
+           <mesh>
+-            <scale>1 1 1</scale>
++            <scale>0.6669 0.6669 0.6669</scale>
+             <uri>package://ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_ccw.dae</uri>
+           </mesh>
+         </geometry>
+@@ -375,10 +394,20 @@
+         </inertia>
+       </inertial>
+       <visual name='visual'>
+-        <pose>0 0 0 0 0 0</pose>
++        <!-- NIDAR: offset and scaled so the RENDERED prop matches the
++             real airframe. The link pose (and therefore where thrust is
++             applied) is untouched - this is a visual correction only.
++             Real aircraft: QAV-R 2, motors at 0.151 m, 7 in props
++             (0.0889 m radius) -> 0.240 m swept,
++             which is what base_collision's r=0.240 cylinder already
++             models. The Iris mesh drew motors at 0.2385 m with
++             0.1333 m blades = 0.372 m swept, so the
++             picture was 62% wider than the body that actually collides -
++             props visibly swept through walls the drone never touched. -->
++        <pose>0.0477 -0.0734 0 0 0 0</pose>
+         <geometry>
+           <mesh>
+-            <scale>1 1 1</scale>
++            <scale>0.6669 0.6669 0.6669</scale>
+             <uri>package://ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_ccw.dae</uri>
+           </mesh>
+         </geometry>
+@@ -424,10 +453,20 @@
+         </inertia>
+       </inertial>
+       <visual name='visual'>
+-        <pose>0 0 0 0 0 0</pose>
++        <!-- NIDAR: offset and scaled so the RENDERED prop matches the
++             real airframe. The link pose (and therefore where thrust is
++             applied) is untouched - this is a visual correction only.
++             Real aircraft: QAV-R 2, motors at 0.151 m, 7 in props
++             (0.0889 m radius) -> 0.240 m swept,
++             which is what base_collision's r=0.240 cylinder already
++             models. The Iris mesh drew motors at 0.2555 m with
++             0.1333 m blades = 0.389 m swept, so the
++             picture was 62% wider than the body that actually collides -
++             props visibly swept through walls the drone never touched. -->
++        <pose>-0.0532 -0.0900 0 0 0 0</pose>
+         <geometry>
+           <mesh>
+-            <scale>1 1 1</scale>
++            <scale>0.6669 0.6669 0.6669</scale>
+             <uri>package://ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_cw.dae</uri>
+           </mesh>
+         </geometry>
+@@ -473,10 +512,20 @@
+         </inertia>
+       </inertial>
+       <visual name='visual'>
+-        <pose>0 0 0 0 0 0</pose>
++        <!-- NIDAR: offset and scaled so the RENDERED prop matches the
++             real airframe. The link pose (and therefore where thrust is
++             applied) is untouched - this is a visual correction only.
++             Real aircraft: QAV-R 2, motors at 0.151 m, 7 in props
++             (0.0889 m radius) -> 0.240 m swept,
++             which is what base_collision's r=0.240 cylinder already
++             models. The Iris mesh drew motors at 0.2385 m with
++             0.1333 m blades = 0.372 m swept, so the
++             picture was 62% wider than the body that actually collides -
++             props visibly swept through walls the drone never touched. -->
++        <pose>0.0477 0.0734 0 0 0 0</pose>
+         <geometry>
+           <mesh>
+-            <scale>1 1 1</scale>
++            <scale>0.6669 0.6669 0.6669</scale>
+             <uri>package://ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_prop_cw.dae</uri>
+           </mesh>
+         </geometry>

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>nidar_sim</name>
+  <version>0.0.0</version>
+  <description>NIDAR 2026-27 simulation support: Nav2 to ArduPilot cmd_vel bridging,
+    SLAM/Nav2 bringup and autonomous frontier exploration.</description>
+  <maintainer email="paiananth0838@gmail.com">ananth</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>nav2_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>visualization_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>action_msgs</depend>
+  <!-- ardupilot_msgs/srv/ModeSwitch: frontier_explorer commands LAND (and RTL
+       as a fallback) through AP_DDS when the map is finished. -->
+  <depend>ardupilot_msgs</depend>
+  <depend>python3-numpy</depend>
+  <!-- map_filter uses cv2.connectedComponentsWithStats to label occupied
+       components; scipy.ndimage is unusable here (NumPy 2 ABI break). -->
+  <depend>python3-opencv</depend>
+
+
+  <!-- Needed at run time by the launch files in launch/. -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>navigation2</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

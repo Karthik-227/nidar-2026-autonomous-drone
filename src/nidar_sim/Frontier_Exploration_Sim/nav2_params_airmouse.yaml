@@ -1,0 +1,323 @@
+# Transcribed verbatim from Team AirMouse's "Autonomous Frontier Exploration
+# — Setup & Run Guide" (NIDAR 2.0 Mission 2, written 24 Aug 2026), section
+# 4.1, ~/nidar_config/nav2_params_iris.yaml — their own debugged values for
+# the costmaps / planner / smoother / behavior / waypoint_follower /
+# velocity_smoother blocks, kept exactly as written there.
+#
+# ONE deliberate deviation, below: bt_navigator.default_nav_to_pose_bt_xml.
+# Their guide doesn't set it, so it runs Nav2's default recovery tree —
+# Spin + BackUp included. On this project's multirotor that's a documented
+# crash cause (CHANGES_path_follower.md: "every crash before 26 Oct was
+# preceded by one" — a yaw-rate command translates the vehicle sideways and
+# smears the 2D scan; BackUp drives in an arbitrary nose direction). Routed
+# at the no-Spin/BackUp tree already in this directory instead.
+#
+# Everything under controller_server/FollowPath (DWB) and velocity_smoother
+# is INERT in this setup: path_follower.py + cmd_vel_bridge drive the drone,
+# nothing subscribes to what DWB/velocity_smoother publish on /cmd_vel.
+# Left exactly as Team AirMouse wrote it anyway, for the same reason their
+# own guide left it in: controller_server still has to be running to serve
+# bt_navigator's FollowPath action, and its goal/progress checkers (fed by
+# real TF, not by DWB's simulated trajectories) are what reports arrivals
+# and stalls back up to bt_navigator.
+#
+# Note on frontier_exploration_ros2: not used. Your own frontier_explorer.py
+# (nidar_sim package) has a completely different parameter schema — none of
+# Team AirMouse's frontier_explorer: keys (mrtsp_solver, weight_distance_wd,
+# frontier_suppression_*, ...) exist in it, so there is no equivalent file to
+# port for the explorer. Nothing changes there.
+#
+# One number worth watching, not changed here because "exactly his params"
+# was the ask: inflation_radius 0.35 (their tuned value — 0.45 "costed
+# corridors nearly shut" for them). The follower-controller branch of this
+# repo independently settled on 0.5, for a different reason: path_follower.py
+# has no local obstacle avoidance of its own beyond a lidar e-stop, so it
+# leans harder on the inflation gradient pulling the *planned path* to the
+# corridor centerline than a DWB-driven run does. If the drone tracks visibly
+# off-center or clips a wall tip, that's the first number to raise.
+#
+# DEVIATION #2, added after live testing (2 Nov 2026): both costmaps'
+# obstacle_layer now read /scan_safe, not /scan. Neither Team AirMouse's
+# config nor the follower-controller branch's config know scan_stabilizer
+# exists — it's this team's own addition, publishing /scan -> /scan_safe
+# with tilt re-projected out (see scan_stabilizer.py). Confirmed against
+# nidar_sim/config/nav2_params.yaml (this team's actual flown config, lines
+# ~156/188): it already does this. Running costmaps off raw /scan let
+# hover-attitude noise jitter wall positions a few cm between scans; with
+# global_costmap.update_frequency: 1.0 matching bt_navigator's 1Hz
+# RateController, NavFn would re-solve and flip between two near-equal-cost
+# routes almost every replan even for an unmoved goal (observed: path length
+# 177->169->174->189->187->173->165->132 across consecutive replans of the
+# same goal). path_follower.py re-targets its carrot onto every new /plan,
+# so each flip showed up as the drone visibly weaving mid-corridor.
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: map
+    robot_base_frame: base_link
+    odom_topic: /odometry
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    # Deviation from Team AirMouse's file — see header comment.
+    default_nav_to_pose_bt_xml: "/home/karthik/ardu_ws/src/nidar_sim/Frontier_Exploration_Sim/nidar_bt.xml"
+    plugin_lib_names:
+      - nav2_compute_path_to_pose_action_bt_node
+      - nav2_compute_path_through_poses_action_bt_node
+      - nav2_smooth_path_action_bt_node
+      - nav2_follow_path_action_bt_node
+      - nav2_spin_action_bt_node
+      - nav2_wait_action_bt_node
+      - nav2_assisted_teleop_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_drive_on_heading_bt_node
+      - nav2_clear_costmap_service_bt_node
+      - nav2_is_stuck_condition_bt_node
+      - nav2_goal_reached_condition_bt_node
+      - nav2_goal_updated_condition_bt_node
+      - nav2_globally_updated_goal_condition_bt_node
+      - nav2_is_path_valid_condition_bt_node
+      - nav2_initial_pose_received_condition_bt_node
+      - nav2_reinitialize_global_localization_service_bt_node
+      - nav2_rate_controller_bt_node
+      - nav2_distance_controller_bt_node
+      - nav2_speed_controller_bt_node
+      - nav2_truncate_path_action_bt_node
+      - nav2_truncate_path_local_action_bt_node
+      - nav2_goal_updater_node_bt_node
+      - nav2_recovery_node_bt_node
+      - nav2_pipeline_sequence_bt_node
+      - nav2_round_robin_node_bt_node
+      - nav2_transform_available_condition_bt_node
+      - nav2_time_expired_condition_bt_node
+      - nav2_path_expiring_timer_condition
+      - nav2_distance_traveled_condition_bt_node
+      - nav2_single_trigger_bt_node
+      - nav2_goal_updated_controller_bt_node
+      - nav2_is_battery_low_condition_bt_node
+      - nav2_navigate_through_poses_action_bt_node
+      - nav2_navigate_to_pose_action_bt_node
+      - nav2_remove_passed_goals_action_bt_node
+      - nav2_planner_selector_bt_node
+      - nav2_controller_selector_bt_node
+      - nav2_goal_checker_selector_bt_node
+      - nav2_controller_cancel_bt_node
+      - nav2_path_longer_on_approach_bt_node
+      - nav2_wait_cancel_bt_node
+      - nav2_spin_cancel_bt_node
+      - nav2_back_up_cancel_bt_node
+      - nav2_assisted_teleop_cancel_bt_node
+      - nav2_drive_on_heading_cancel_bt_node
+
+controller_server:
+  ros__parameters:
+    use_sim_time: true
+    # 10 Hz instead of 20 - VM CPU budget.
+    controller_frequency: 10.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.5
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.3
+      movement_time_allowance: 15.0
+
+    general_goal_checker:
+      stateful: True
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.60
+      # 360-degree lidar: final heading is irrelevant, don't spin at goals.
+      yaw_goal_tolerance: 6.28
+
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: False
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      # Conservative for 1m corridors; raise after it works.
+      max_vel_x: 0.5
+      max_vel_y: 0.0
+      max_vel_theta: 1.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.5
+      min_speed_theta: 0.0
+      acc_lim_x: 0.8
+      acc_lim_y: 0.0
+      acc_lim_theta: 1.5
+      decel_lim_x: -0.8
+      decel_lim_y: 0.0
+      decel_lim_theta: -1.5
+      vx_samples: 20
+      vy_samples: 1
+      vtheta_samples: 20
+      sim_time: 1.7
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      # Generous: VM + SITL TF latency.
+      transform_tolerance: 0.5
+      xy_goal_tolerance: 0.60
+      trans_stopped_velocity: 0.25
+      short_circuit_trajectory_evaluation: True
+      stateful: True
+      critics: ["Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 24.0
+      GoalAlign.forward_point_distance: 0.1
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_link
+      rolling_window: true
+      width: 4
+      height: 4
+      resolution: 0.05
+      # Iris incl. props ~0.30. THE critical number for 1m corridors:
+      # free centerline band = corridor_width - 2*robot_radius.
+      robot_radius: 0.30
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan_safe
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 8.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 6.0
+          obstacle_min_range: 0.0
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        # High scaling = cost decays fast from walls, so the 0.4m-wide
+        # non-lethal band in a 1m corridor stays cheap enough to plan through.
+        cost_scaling_factor: 5.0
+        inflation_radius: 0.35
+      always_send_full_costmap: True
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: true
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_link
+      robot_radius: 0.30
+      resolution: 0.05
+      # Critical for exploration: unknown must NOT be treated as free,
+      # or frontier semantics degrade and the planner cuts through unmapped space.
+      track_unknown_space: true
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        # slam_toolbox publishes transient_local.
+        map_subscribe_transient_local: True
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan_safe
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 8.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 6.0
+          obstacle_min_range: 0.0
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 5.0
+        inflation_radius: 0.35
+      always_send_full_costmap: True
+
+planner_server:
+  ros__parameters:
+    use_sim_time: true
+    expected_planner_frequency: 5.0
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      # Frontier goals sit at the known/unknown boundary; the planner
+      # must be allowed to plan near unknown space.
+      allow_unknown: true
+
+smoother_server:
+  ros__parameters:
+    use_sim_time: true
+    smoother_plugins: ["simple_smoother"]
+    simple_smoother:
+      plugin: "nav2_smoother::SimpleSmoother"
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: True
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: true
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors/DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.5
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 1.0
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 3.2
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: true
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 200
+
+velocity_smoother:
+  ros__parameters:
+    use_sim_time: true
+    smoothing_frequency: 20.0
+    scale_velocities: False
+    feedback: "OPEN_LOOP"
+    max_velocity: [0.5, 0.0, 1.0]
+    # Small negative x allowed so the BackUp recovery can work.
+    min_velocity: [-0.25, 0.0, -1.0]
+    max_accel: [0.8, 0.0, 1.5]
+    max_decel: [-0.8, 0.0, -1.5]
+    odom_topic: "/odometry"
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0

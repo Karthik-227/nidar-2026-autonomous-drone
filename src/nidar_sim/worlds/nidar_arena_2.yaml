@@ -1,0 +1,46 @@
+# Ground truth for nidar_arena_2. Generated, do not edit.
+# Regenerate: generate_arena.py --name nidar_arena_2 --seed 202 --corridor 1.00 --rooms 7 --survivors 6 --loop-prob 0.20 --entry-corner ne --cells 13 --start open --start-cells 3
+# grid_box: column A..M runs west->east (+x), row 1..13 runs
+#           south->north (+y). Cell pitch 1.10 m.
+arena:
+  seed: 202
+  cells: 13
+  corridor_width_m: 1.000
+  wall_thickness_m: 0.100
+  cell_pitch_m: 1.100
+  maze_size_m: [14.400, 14.400]
+  outer_size_m: [14.400, 14.400]   # incl. the start area
+  start_area: open
+  start_bay_m: 3.200
+  room_interior_m: 2.100
+  net_height_m: 2.500
+  entry_corner: ne
+  launch_pad_xy: [0.0, 0.0]   # world origin, by construction
+  launch_pad_size_m: 0.610
+  rooms: 7
+survivors:
+  - id: survivor_1
+    grid_box: G11
+    xy: [-6.068, -2.245]
+    room: 0
+  - id: survivor_2
+    grid_box: H8
+    xy: [-4.954, -5.691]
+    room: 1
+  - id: survivor_3
+    grid_box: D4
+    xy: [-9.538, -9.605]
+    room: 2
+  - id: survivor_4
+    grid_box: L8
+    xy: [-1.177, -5.794]
+    room: 3
+  - id: survivor_5
+    grid_box: B8
+    xy: [-12.595, -5.671]
+    room: 4
+  - id: survivor_6
+    grid_box: D9
+    xy: [-9.715, -4.781]
+    room: 5
+empty_rooms: 1

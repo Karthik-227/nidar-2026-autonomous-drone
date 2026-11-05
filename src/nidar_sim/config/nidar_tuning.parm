@@ -1,0 +1,25 @@
+
+WP_ACC          1.8
+WP_ACC_CNR      1.8
+ATC_ANGLE_MAX   12
+WP_SPD          1.2
+PSC_NE_JERK     4.0
+PSC_ANGLE_MAX   0.0
+
+ATC_INPUT_TC    0.25
+
+WP_YAW_BEHAVIOR 0
+
+DDS_USE_NS 1
+
+# ARMING_CHECK = 0 — SIMULATION ONLY, never do this on a real airframe.
+# Added 3 Nov 2026 after repeated test cycles each needing up to ~9 manual
+# `arm throttle` retries, 4s apart, before EKF3/AHRS converged ("Accels
+# inconsistent", "AHRS: waiting for home", "Need Position Estimate" -
+# all prearm checks gated on IMU/EKF settle time, not a fault). That wait
+# is itself normal and sim-time-dependent (RUNBOOK.md already documents
+# it), but re-sending arm_motors by hand every test cycle is pure friction
+# with no safety value in SITL. 0 disables every prearm check, so GUIDED
+# arm succeeds on the first call once ArduPilot is up - same fix the
+# AirMouse PDF guide uses in its own run procedure ("param set ARMING_CHECK
+# 0 # simulation only").

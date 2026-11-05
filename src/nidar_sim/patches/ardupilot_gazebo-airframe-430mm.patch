@@ -1,0 +1,115 @@
+diff --git a/models/iris_with_standoffs/model.sdf b/models/iris_with_standoffs/model.sdf
+index 41bcf95..3a35766 100755
+--- a/models/iris_with_standoffs/model.sdf
++++ b/models/iris_with_standoffs/model.sdf
+@@ -23,6 +23,10 @@
+         <pose>0 0 0 0 0 0</pose>
+         <geometry>
+           <mesh>
++            <!-- NIDAR: 0.790 in x/y shrinks this 0.543 m-wide mesh to the
++                 0.430 m of the real QAV 7" airframe (hardware sheet). z is
++                 left alone so the landing height is unchanged. -->
++            <scale>0.790 0.790 1.0</scale>
+             <uri>package://ardupilot_gazebo/models/iris_with_standoffs/meshes/iris_collision.stl</uri>
+           </mesh>
+         </geometry>
+@@ -42,7 +46,7 @@
+         </surface>
+       </collision>
+       <collision name='front_left_leg_collision'>
+-        <pose>0.123 0.22 -0.11 0 0 0</pose>
++        <pose>0.0972 0.1738 -0.11 0 0 0</pose>
+         <geometry>
+           <cylinder>
+             <radius>0.005</radius>
+@@ -65,7 +69,7 @@
+         </surface>
+       </collision>
+       <collision name='front_right_leg_collision'>
+-        <pose>0.123 -0.22 -0.11 0 0 0</pose>
++        <pose>0.0972 -0.1738 -0.11 0 0 0</pose>
+         <geometry>
+           <cylinder>
+             <radius>0.005</radius>
+@@ -88,7 +92,7 @@
+         </surface>
+       </collision>
+       <collision name='rear_left_leg_collision'>
+-        <pose>-0.140 0.21 -0.11 0 0 0</pose>
++        <pose>-0.1106 0.1659 -0.11 0 0 0</pose>
+         <geometry>
+           <cylinder>
+             <radius>0.005</radius>
+@@ -111,7 +115,7 @@
+         </surface>
+       </collision>
+       <collision name='rear_right_leg_collision'>
+-        <pose>-0.140 -0.21 -0.11 0 0 0</pose>
++        <pose>-0.1106 -0.1659 -0.11 0 0 0</pose>
+         <geometry>
+           <cylinder>
+             <radius>0.005</radius>
+@@ -306,15 +310,6 @@
+           <izz>0.000167604</izz>
+         </inertia>
+       </inertial>
+-      <collision name='collision'>
+-        <pose>0 0 0 0 0 0</pose>
+-        <geometry>
+-          <cylinder>
+-            <length>0.005</length>
+-            <radius>0.1</radius>
+-          </cylinder>
+-        </geometry>
+-      </collision>
+       <visual name='visual'>
+         <pose>0 0 0 0 0 0</pose>
+         <geometry>
+@@ -364,15 +359,6 @@
+           <izz>0.000167604</izz>
+         </inertia>
+       </inertial>
+-      <collision name='collision'>
+-        <pose>0 0 0 0 0 0</pose>
+-        <geometry>
+-          <cylinder>
+-            <length>0.005</length>
+-            <radius>0.1</radius>
+-          </cylinder>
+-        </geometry>
+-      </collision>
+       <visual name='visual'>
+         <pose>0 0 0 0 0 0</pose>
+         <geometry>
+@@ -422,15 +408,6 @@
+           <izz>0.000167604</izz>
+         </inertia>
+       </inertial>
+-      <collision name='collision'>
+-        <pose>0 0 0 0 0 0</pose>
+-        <geometry>
+-          <cylinder>
+-            <length>0.005</length>
+-            <radius>0.1</radius>
+-          </cylinder>
+-        </geometry>
+-      </collision>
+       <visual name='visual'>
+         <pose>0 0 0 0 0 0</pose>
+         <geometry>
+@@ -480,15 +457,6 @@
+           <izz>0.000167604</izz>
+         </inertia>
+       </inertial>
+-      <collision name='collision'>
+-        <pose>0 0 0 0 0 0</pose>
+-        <geometry>
+-          <cylinder>
+-            <length>0.005</length>
+-            <radius>0.1</radius>
+-          </cylinder>
+-        </geometry>
+-      </collision>
+       <visual name='visual'>
+         <pose>0 0 0 0 0 0</pose>
+         <geometry>
